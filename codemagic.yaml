@@ -5,9 +5,12 @@
 workflows:
   android-deploy:
     name: Android CI/CD (appbundle -> Firebase App Distribution)
-    triggers:
-      - push:
-          branches: [main]
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
     environment:
       # Use the Flutter stable channel
       flutter: stable
