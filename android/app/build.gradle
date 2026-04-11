@@ -1,5 +1,25 @@
 // Minimal snippet showing how to load signing config from key.properties.
 // Place this file under `android/app/build.gradle` in a real Flutter project.
+plugins {
+  id 'com.android.application'
+
+  // Add the Google services Gradle plugin
+  id 'com.google.gms.google-services'
+}
+
+dependencies {
+  // Import the Firebase BoM
+  implementation platform('com.google.firebase:firebase-bom:34.12.0')
+
+
+  // TODO: Add the dependencies for Firebase products you want to use
+  // When using the BoM, don't specify versions in Firebase dependencies
+  implementation 'com.google.firebase:firebase-analytics'
+
+
+  // Add the dependencies for any other desired Firebase products
+  // https://firebase.google.com/docs/android/setup#available-libraries
+}
 
 def keystorePropertiesFile = rootProject.file('android/key.properties')
 def keystoreProperties = new Properties()

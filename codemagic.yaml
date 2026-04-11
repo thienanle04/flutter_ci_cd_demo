@@ -11,37 +11,35 @@ workflows:
     environment:
       # Use the Flutter stable channel
       flutter: stable
-      vars:
-        # These should be set in Codemagic UI as secure environment variables
-        - name: FIREBASE_TOKEN
-          secure: true
-        - name: FIREBASE_APP_ID
-          secure: true
-        # Optional: provide keystore as base64 encoded string
-        - name: ANDROID_KEYSTORE_BASE64
-          secure: true
-        - name: KEYSTORE_PASSWORD
-          secure: true
-        - name: KEY_ALIAS
-          secure: true
-        - name: KEY_PASSWORD
-          secure: true
+      groups:
+        - firebase_credentials
+        - android_keystore
 
+    # Scripts are written defensively: detect keystore in repo, or decode from
+    # ANDROID_KEYSTORE_BASE64 if provided. Builds appbundle, but falls back to
+    # an apk if aab build fails. Artifacts include both .aab and .apk patterns.
     scripts:
       - name: Install dependencies
         script: |
+          set -euo pipefail
           echo "-> flutter pub get"
           flutter pub get
 
-      - name: Restore cache (pub)
+      - name: Setup Android keystore (repo or CI)
         script: |
-          echo "-> restoring pub cache"
-        # Codemagic has built-in caching; ensure cache is enabled in UI if needed
-
-      - name: Setup Android keystore (optional)
-        script: |
-          set -e
-          if [ -n "${ANDROID_KEYSTORE_BASE64-}" ]; then
+          set -euo pipefail
+          echo "-> Preparing keystore and key.properties"
+          # If repo already contains android/app/keystore.jks (you mentioned you added it), prefer that.
+          if [ -f android/app/keystore.jks ]; then
+            echo "Found android/app/keystore.jks in repository — using it."
+            cat > android/key.properties <<EOF
+storePassword=${KEYSTORE_PASSWORD-}
+keyPassword=${KEY_PASSWORD-}
+keyAlias=${KEY_ALIAS-}
+storeFile=keystore.jks
+EOF
+            ls -l android/app/keystore.jks || true
+          elif [ -n "${ANDROID_KEYSTORE_BASE64-}" ]; then
             echo "Decoding keystore from ANDROID_KEYSTORE_BASE64"
             mkdir -p android/app
             echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/keystore.jks
@@ -52,33 +50,55 @@ keyAlias=$KEY_ALIAS
 storeFile=keystore.jks
 EOF
             echo "Keystore written to android/app/keystore.jks and android/key.properties"
+            ls -l android/app/keystore.jks || true
           else
-            echo "No ANDROID_KEYSTORE_BASE64 provided — skipping keystore setup"
+            echo "No keystore provided (repo or ANDROID_KEYSTORE_BASE64). The build will proceed unsigned if possible."
           fi
 
-      - name: Build Android AppBundle
+      - name: Build Android (appbundle with APK fallback)
         script: |
-          echo "-> Building appbundle"
-          flutter build appbundle --release
+          set -euo pipefail
+          echo "-> Building Android AppBundle (release)"
+          # Enable verbose output for troubleshooting if DEBUG_BUILD env var is set
+          VERBOSE_FLAG=""
+          if [ "${DEBUG_BUILD-}" = "true" ]; then
+            VERBOSE_FLAG="--verbose"
+            set -x
+          fi
 
-      - name: List artifact
+          if flutter build appbundle --release $VERBOSE_FLAG; then
+            echo "AppBundle built successfully"
+          else
+            echo "AppBundle build failed — attempting APK fallback"
+            flutter build apk --release $VERBOSE_FLAG
+          fi
+
+      - name: List artifacts
         script: |
           echo "-> Built files:"
           ls -la build/app/outputs/bundle/release || true
+          ls -la build/app/outputs/flutter-apk || true
 
     artifacts:
       - build/app/outputs/bundle/release/*.aab
+      - build/app/outputs/flutter-apk/*.apk
 
     publishing:
       scripts:
         - name: Deploy to Firebase App Distribution
           script: |
+            set -euo pipefail
             echo "-> Deploying to Firebase App Distribution"
-            # find artifact (prefer app-release.aab)
+            # Prefer .aab if present, otherwise use an .apk
             ARTIFACT=$(ls build/app/outputs/bundle/release/*.aab 2>/dev/null | head -n1 || true)
             if [ -z "$ARTIFACT" ]; then
-              echo "No .aab artifact found to deploy" >&2
+              ARTIFACT=$(ls build/app/outputs/flutter-apk/*.apk 2>/dev/null | head -n1 || true)
+            fi
+            if [ -z "$ARTIFACT" ]; then
+              echo "No .aab or .apk artifact found to deploy" >&2
               exit 1
             fi
+            echo "Deploying artifact: $ARTIFACT"
             chmod +x scripts/deploy_firebase.sh
             ./scripts/deploy_firebase.sh "$ARTIFACT"
+

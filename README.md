@@ -31,6 +31,11 @@ flutter create .
      - `ANDROID_KEYSTORE_BASE64` — base64 of your keystore file (secure)
      - `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` (secure)
 
+      - Optional Firebase distribution targets:
+        - `groups` or `FIREBASE_GROUPS` — comma-separated distribution groups (e.g. "qa,internal"). `groups` is supported for compatibility with some Codemagic examples.
+        - `FIREBASE_TESTERS` — comma-separated tester emails
+        - `FIREBASE_RELEASE_NOTES` — custom release notes for this distribution
+
    To create `ANDROID_KEYSTORE_BASE64`:
 
 ```bash

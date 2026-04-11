@@ -3,7 +3,7 @@ description: A minimal Flutter app scaffold for Codemagic CI/CD demo
 publish_to: 'none'
 version: 0.0.1
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: '>=2.17.0 <=4.0.0'
 
 dependencies:
   flutter:
