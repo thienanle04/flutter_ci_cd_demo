@@ -33,22 +33,22 @@ workflows:
           if [ -f android/app/keystore.jks ]; then
             echo "Found android/app/keystore.jks in repository — using it."
             cat > android/key.properties <<EOF
-storePassword=${KEYSTORE_PASSWORD-}
-keyPassword=${KEY_PASSWORD-}
-keyAlias=${KEY_ALIAS-}
-storeFile=keystore.jks
-EOF
+            storePassword=${KEYSTORE_PASSWORD-}
+            keyPassword=${KEY_PASSWORD-}
+            keyAlias=${KEY_ALIAS-}
+            storeFile=keystore.jks
+            EOF
             ls -l android/app/keystore.jks || true
           elif [ -n "${ANDROID_KEYSTORE_BASE64-}" ]; then
             echo "Decoding keystore from ANDROID_KEYSTORE_BASE64"
             mkdir -p android/app
             echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/keystore.jks
             cat > android/key.properties <<EOF
-storePassword=$KEYSTORE_PASSWORD
-keyPassword=$KEY_PASSWORD
-keyAlias=$KEY_ALIAS
-storeFile=keystore.jks
-EOF
+            storePassword=$KEYSTORE_PASSWORD
+            keyPassword=$KEY_PASSWORD
+            keyAlias=$KEY_ALIAS
+            storeFile=keystore.jks
+            EOF
             echo "Keystore written to android/app/keystore.jks and android/key.properties"
             ls -l android/app/keystore.jks || true
           else
