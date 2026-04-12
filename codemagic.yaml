@@ -101,11 +101,3 @@ workflows:
       - build/app/outputs/bundle/release/*.aab
       - build/app/outputs/flutter-apk/*.apk
 
-    publishing:
-      email:
-        recipients:
-          - $CM_NOTIFY_EMAIL
-        notify:
-          success: true
-          failure: true
-
