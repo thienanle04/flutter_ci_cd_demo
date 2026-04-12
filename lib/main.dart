@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'core/config/app_env.dart';
 import 'domain/di/service_locator.dart';
 import 'presentation/weather/pages/weather_page.dart';
 import 'presentation/weather/stores/i_weather_store.dart';
@@ -26,11 +27,12 @@ class App extends StatelessWidget {
     return Provider<IWeatherStore>(
       create: (_) => sl<WeatherStore>(),
       child: MaterialApp(
-        title: 'Weather CI/CD Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
+        // Makes dev/staging/main builds easy to tell apart when sideloading APKs.
+        title: 'Weather CI/CD Demo · ${AppEnv.appEnv}',
         home: const WeatherPage(),
       ),
     );

@@ -1,0 +1,132 @@
+# Branch → APP_ENV mapping for APK builds (see build-* jobs):
+#   develop → dev
+#   staging → staging
+#   main    → main
+#
+# Adjust branch names here if your repo uses different conventions (e.g. `dev`).
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+
+  test:
+    needs: analyze
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app_env: [dev, staging, main]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test --dart-define=APP_ENV=${{ matrix.app_env }}
+
+  build-main:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [analyze, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Build APK (main)
+        run: >-
+          flutter build apk --release
+          --build-name=1.0.0
+          --build-number=${{ github.run_number }}
+          --dart-define=APP_ENV=main
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-main-run-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: [analyze, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Build APK (staging)
+        run: >-
+          flutter build apk --release
+          --build-name=1.0.0
+          --build-number=${{ github.run_number }}
+          --dart-define=APP_ENV=staging
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-staging-run-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build-develop:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    needs: [analyze, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Build APK (dev)
+        run: >-
+          flutter build apk --release
+          --build-name=1.0.0
+          --build-number=${{ github.run_number }}
+          --dart-define=APP_ENV=dev
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-develop-run-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-release.apk
