@@ -35,6 +35,9 @@ flutter create .
         - `groups` or `FIREBASE_GROUPS` — comma-separated distribution groups (e.g. "qa,internal"). `groups` is supported for compatibility with some Codemagic examples.
         - `FIREBASE_TESTERS` — comma-separated tester emails
         - `FIREBASE_RELEASE_NOTES` — custom release notes for this distribution
+      - Release signing in CI:
+        - To enable release signing in Codemagic (use secure keystore), set `ANDROID_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` and the workflow will set `RELEASE_SIGNING_ENABLED=true` automatically when it decodes the keystore.
+        - For local testing, set `RELEASE_SIGNING_ENABLED=true` if you want Gradle to use `android/key.properties` for release signing.
 
    To create `ANDROID_KEYSTORE_BASE64`:
 
