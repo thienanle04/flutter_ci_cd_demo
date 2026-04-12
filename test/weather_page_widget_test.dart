@@ -40,4 +40,63 @@ void main() {
     expect(find.textContaining('Humidity:'), findsOneWidget);
     expect(find.textContaining('Conditions:'), findsOneWidget);
   });
+
+  testWidgets('WeatherPage shows initial hint', (WidgetTester tester) async {
+    final store = FakeWeatherStore()..setStateForTest(const WeatherInitial());
+
+    await tester.pumpWidget(
+      Provider<IWeatherStore>.value(
+        value: store,
+        child: const MaterialApp(home: WeatherPage()),
+      ),
+    );
+
+    expect(find.text('Search for a city to begin'), findsOneWidget);
+  });
+
+  testWidgets('WeatherPage shows loading indicator', (
+    WidgetTester tester,
+  ) async {
+    final store = FakeWeatherStore()..setStateForTest(const WeatherLoading());
+
+    await tester.pumpWidget(
+      Provider<IWeatherStore>.value(
+        value: store,
+        child: const MaterialApp(home: WeatherPage()),
+      ),
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('WeatherPage shows error text', (WidgetTester tester) async {
+    final store = FakeWeatherStore()
+      ..setStateForTest(const WeatherError('Something went wrong'));
+
+    await tester.pumpWidget(
+      Provider<IWeatherStore>.value(
+        value: store,
+        child: const MaterialApp(home: WeatherPage()),
+      ),
+    );
+
+    expect(find.byKey(const Key('weather_error_text')), findsOneWidget);
+    expect(find.textContaining('Something went wrong'), findsOneWidget);
+  });
+
+  testWidgets('WeatherPage shows missing API key banner when key absent', (
+    WidgetTester tester,
+  ) async {
+    dotenv.testLoad(fileInput: '');
+    final store = FakeWeatherStore()..setStateForTest(const WeatherInitial());
+
+    await tester.pumpWidget(
+      Provider<IWeatherStore>.value(
+        value: store,
+        child: const MaterialApp(home: WeatherPage()),
+      ),
+    );
+
+    expect(find.textContaining('No API key found'), findsOneWidget);
+  });
 }

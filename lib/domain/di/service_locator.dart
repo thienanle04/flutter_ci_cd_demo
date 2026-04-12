@@ -1,16 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
+import '../../core/config/app_env.dart';
+import '../../core/networking/dio_client.dart';
 import '../../data/datasources/weather_remote_data_source.dart';
 import '../../data/repositories/weather_repository_impl.dart';
 import '../../data/services/open_weather_service.dart';
+import '../../presentation/weather/stores/weather_store.dart';
 import '../repository/weather_repository.dart';
 import '../usecases/get_current_weather_by_city.dart';
 import '../usecases/get_current_weather_by_coordinates.dart';
 import '../usecases/search_city_suggestions.dart';
-import '../../presentation/weather/stores/weather_store.dart';
-import '../../core/config/app_env.dart';
-import '../../core/networking/dio_client.dart';
 
 final GetIt sl = GetIt.instance;
 

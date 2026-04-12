@@ -106,9 +106,8 @@ final class _WeatherPageState extends State<WeatherPage> {
                           shrinkWrap: true,
                           padding: EdgeInsets.zero,
                           itemCount: suggestions.length,
-                          separatorBuilder:
-                              (BuildContext context, int index) =>
-                                  const Divider(height: 1),
+                          separatorBuilder: (BuildContext context, int index) =>
+                              const Divider(height: 1),
                           itemBuilder: (BuildContext context, int index) {
                             final CitySuggestion s = suggestions[index];
                             return ListTile(
@@ -126,8 +125,7 @@ final class _WeatherPageState extends State<WeatherPage> {
                     children: <Widget>[
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: () =>
-                              store.fetchByCity(_controller.text),
+                          onPressed: () => store.fetchByCity(_controller.text),
                           icon: const Icon(Icons.search),
                           label: const Text('Get weather'),
                         ),
