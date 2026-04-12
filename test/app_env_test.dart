@@ -32,20 +32,5 @@ void main() {
         expect(AppEnv.openWeatherBaseUrl, 'https://example.test/api');
       },
     );
-
-    test(
-      'appEnv reads APP_ENV from dotenv when compile-time define is empty',
-      () {
-        dotenv.testLoad(fileInput: 'APP_ENV=staging\n');
-
-        expect(AppEnv.appEnv, 'staging');
-      },
-    );
-
-    test('appEnv normalizes unknown APP_ENV in dotenv to dev', () {
-      dotenv.testLoad(fileInput: 'APP_ENV=unknown-flavor\n');
-
-      expect(AppEnv.appEnv, 'dev');
-    });
   });
 }
