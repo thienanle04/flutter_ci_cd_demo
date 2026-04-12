@@ -16,7 +16,7 @@ workflows:
       flutter: stable
       groups:
         - firebase_credentials
-    #    - android_keystore
+        - android_keystore
 
     # Scripts are written defensively: detect keystore in repo, or decode from
     # ANDROID_KEYSTORE_BASE64 if provided. Builds appbundle, but falls back to
