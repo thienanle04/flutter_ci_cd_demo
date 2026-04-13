@@ -23,10 +23,7 @@ final class OpenWeatherService {
   ) async {
     final response = await _dio.get<Object?>(
       '/weather',
-      queryParameters: <String, Object?>{
-        'lat': latitude,
-        'lon': longitude,
-      },
+      queryParameters: <String, Object?>{'lat': latitude, 'lon': longitude},
     );
 
     return _parseObjectResponse(response.data);

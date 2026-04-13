@@ -12,6 +12,7 @@ final class CitySuggestion {
   final String name;
   final String? state;
   final String countryCode;
+
   /// English display name for [countryCode] (e.g. "United States").
   final String countryName;
   final double latitude;
