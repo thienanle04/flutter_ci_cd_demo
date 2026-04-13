@@ -18,9 +18,6 @@ if [ ! -f "$ARTIFACT_PATH" ]; then
   exit 1
 fi
 
-echo "Installing firebase-tools..."
-npm install -g firebase-tools@latest
-
 echo "Uploading $ARTIFACT_PATH to Firebase App Distribution (app: $FIREBASE_APP_ID)"
 firebase appdistribution:distribute "$ARTIFACT_PATH" \
   --app "$FIREBASE_APP_ID" \
