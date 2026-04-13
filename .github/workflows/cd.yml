@@ -1,0 +1,115 @@
+# Continuous Delivery (CD) Pipeline
+# Builds release APK and AAB artifacts after successful CI
+#
+# Triggers:
+# - After successful CI pipeline on main, staging, and develop branches
+
+name: Continuous Delivery
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches:
+      - main
+      - staging
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  determine-env:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      app_env: ${{ steps.determine.outputs.app_env }}
+      branch: ${{ steps.determine.outputs.branch }}
+    steps:
+      - name: Determine environment from branch
+        id: determine
+        run: |
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+          
+          case "${BRANCH}" in
+            main)
+              echo "app_env=main" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "app_env=staging" >> $GITHUB_OUTPUT
+              ;;
+            develop)
+              echo "app_env=dev" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Unknown branch: ${BRANCH}"
+              exit 1
+              ;;
+          esac
+
+  build-apk:
+    needs: determine-env
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-env.outputs.branch }}
+      
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      
+      - run: flutter pub get
+      
+      - name: Build APK (${{ needs.determine-env.outputs.app_env }})
+        run: >-
+          flutter build apk --release
+          --build-name=1.0.0
+          --build-number=${{ github.run_number }}
+          --dart-define=APP_ENV=${{ needs.determine-env.outputs.app_env }}
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ needs.determine-env.outputs.app_env }}-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+  build-aab:
+    needs: determine-env
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-env.outputs.branch }}
+      
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      
+      - run: flutter pub get
+      
+      - name: Build AAB (${{ needs.determine-env.outputs.app_env }})
+        run: >-
+          flutter build appbundle --release
+          --build-name=1.0.0
+          --build-number=${{ github.run_number }}
+          --dart-define=APP_ENV=${{ needs.determine-env.outputs.app_env }}
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aab-${{ needs.determine-env.outputs.app_env }}-${{ github.run_number }}
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
