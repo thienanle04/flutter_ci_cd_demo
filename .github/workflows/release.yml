@@ -45,9 +45,8 @@ jobs:
           --build-number=${{ github.run_number }}
           --dart-define=APP_ENV=main
           --dart-define=OPENWEATHER_API_KEY=$WEATHER_KEY
-      - uses: softprops/action-gh-release@v2
+      - name: Upload Tagged APK
+        uses: actions/upload-artifact@v4
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: apk-tag-${{ steps.version.outputs.version }}
+          path: build/app/outputs/flutter-apk/app-release.apk
