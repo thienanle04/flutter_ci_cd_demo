@@ -1,0 +1,78 @@
+# Continuous Delivery (CD) Pipeline — Reusable Workflow
+# Called by CI after analyze + test pass on protected branches.
+# Builds release APK and AAB artifacts.
+
+name: Continuous Delivery
+
+on:
+  workflow_call:
+    inputs:
+      app_env:
+        description: 'App environment (dev, staging, main)'
+        required: true
+        type: string
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build APK (${{ inputs.app_env }})
+        run: >-
+          flutter build apk --release
+          --build-name=1.0.0
+          --build-number=${{ github.run_number }}
+          --dart-define=APP_ENV=${{ inputs.app_env }}
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: apk-${{ inputs.app_env }}-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+  build-aab:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build AAB (${{ inputs.app_env }})
+        run: >-
+          flutter build appbundle --release
+          --build-name=1.0.0
+          --build-number=${{ github.run_number }}
+          --dart-define=APP_ENV=${{ inputs.app_env }}
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: aab-${{ inputs.app_env }}-${{ github.run_number }}
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
