@@ -16,6 +16,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: main
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
