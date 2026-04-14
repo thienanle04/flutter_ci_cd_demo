@@ -137,7 +137,7 @@ final class _WeatherPageState extends State<WeatherPage> {
                     const Padding(
                       padding: EdgeInsets.only(bottom: 8),
                       child: Text(
-                        'No API key found. Provide OPENWEATHER_API_KEY via --dart-define or .env.',
+                        'No API key found. Please provide OPENWEATHER_API_KEY.',
                       ),
                     ),
                   Expanded(child: _StateView(state: state)),
