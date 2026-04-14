@@ -67,11 +67,16 @@ workflows:
             set -x
           fi
 
-          if flutter build appbundle --release $VERBOSE_FLAG; then
+          # $BUILD_NUMBER is auto-incremented by Codemagic per build → used as
+          # Android versionCode so each published build has a unique, increasing code.
+          BUILD_NUM="${BUILD_NUMBER:-1}"
+          echo "Using versionCode: $BUILD_NUM"
+
+          if flutter build appbundle --release --build-number "$BUILD_NUM" $VERBOSE_FLAG; then
             echo "AppBundle built successfully"
           else
             echo "AppBundle build failed — attempting APK fallback"
-            flutter build apk --release $VERBOSE_FLAG
+            flutter build apk --release --build-number "$BUILD_NUM" $VERBOSE_FLAG
           fi
 
       - name: List artifacts
