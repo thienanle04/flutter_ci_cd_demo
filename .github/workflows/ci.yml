@@ -133,3 +133,27 @@ jobs:
         with:
           name: apk-develop-run-${{ github.run_number }}
           path: build/app/outputs/flutter-apk/app-release.apk
+
+  # ── Continuous Delivery ─────────────────────────────────────
+  # Calls the reusable CD workflow after CI passes on protected branches.
+
+  cd-main:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [analyze, test]
+    uses: ./.github/workflows/cd.yml
+    with:
+      app_env: main
+
+  cd-staging:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: [analyze, test]
+    uses: ./.github/workflows/cd.yml
+    with:
+      app_env: staging
+
+  cd-develop:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    needs: [analyze, test]
+    uses: ./.github/workflows/cd.yml
+    with:
+      app_env: dev
