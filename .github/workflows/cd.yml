@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.determine-env.outputs.branch }}
+          ref: ${{ github.event.workflow_run.head_sha }}
       
       - uses: actions/setup-java@v4
         with:
@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.determine-env.outputs.branch }}
+          ref: ${{ github.event.workflow_run.head_sha }}
       
       - uses: actions/setup-java@v4
         with:
