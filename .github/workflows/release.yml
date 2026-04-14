@@ -37,14 +37,16 @@ jobs:
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "Building release ${version} (build ${{ github.run_number }})"
       - name: Build release APK
+        env:
+          WEATHER_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
         run: >-
           flutter build apk --release
           --build-name=${{ steps.version.outputs.version }}
           --build-number=${{ github.run_number }}
           --dart-define=APP_ENV=main
-      - uses: softprops/action-gh-release@v2
+          --dart-define=OPENWEATHER_API_KEY=$WEATHER_KEY
+      - name: Upload Tagged APK
+        uses: actions/upload-artifact@v4
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: apk-tag-${{ steps.version.outputs.version }}
+          path: build/app/outputs/flutter-apk/app-release.apk
